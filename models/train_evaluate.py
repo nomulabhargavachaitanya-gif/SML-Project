@@ -3,6 +3,8 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.cluster import KMeans
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
 from scipy.optimize import linear_sum_assignment
 from evaluation.metrics import get_performance_report
@@ -19,10 +21,10 @@ def train_and_test_models(X_tr, y_tr, X_val, y_val, X_ts, y_ts, feat_name):
     print(f"\n--- Running Experiment: {feat_name} ---")
     
     models = {
-        "Logistic Regression": LogisticRegression(max_iter=1000),
-        "Linear SVM": SVC(kernel='linear'),
-        "RBF SVM": SVC(kernel='rbf'),
-        "KNN (k=5)": KNeighborsClassifier(n_neighbors=5),
+        "Logistic Regression": make_pipeline(StandardScaler(with_mean=False), LogisticRegression(max_iter=1000)),
+        "Linear SVM": make_pipeline(StandardScaler(with_mean=False), SVC(kernel='linear')),
+        "RBF SVM": make_pipeline(StandardScaler(with_mean=False), SVC(kernel='rbf')),
+        "KNN (k=5)": make_pipeline(StandardScaler(with_mean=False), KNeighborsClassifier(n_neighbors=5)),
         "KMeans (Baseline)": KMeans(n_clusters=4, random_state=42, n_init=10)
     }
     

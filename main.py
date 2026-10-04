@@ -39,10 +39,12 @@ def main():
         # 5. Dim Reduction
         print("Step 5: Dimensionality reduction (PCA/SVD)...")
         tr_tfidf_red, tf_red, tf_var = reduce_dimensions(tr_tfidf, 'svd', 100)
-        val_tfidf_red, ts_tfidf_red = tf_red.transform(val_tfidf), tf_red.transform(ts_tfidf)
+        val_tfidf_red, _, _ = reduce_dimensions(val_tfidf, reducer=tf_red)
+        ts_tfidf_red, _, _ = reduce_dimensions(ts_tfidf, reducer=tf_red)
 
         tr_cls_red, cls_red, cls_var = reduce_dimensions(tr_cls, 'pca', 100)
-        val_cls_red, ts_cls_red = cls_red.transform(val_cls), cls_red.transform(ts_cls)
+        val_cls_red, _, _ = reduce_dimensions(val_cls, reducer=cls_red)
+        ts_cls_red, _, _ = reduce_dimensions(ts_cls, reducer=cls_red)
 
         plot_tsne(tr_cls, train_df['label'], "DistilBERT CLS", f"{OUT_DIR}/tsne_cls.png")
         plot_variance_curve(cls_var, "BERT CLS PCA", f"{OUT_DIR}/pca_cls.png")

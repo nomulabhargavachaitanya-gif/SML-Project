@@ -22,10 +22,12 @@ def get_embeddings(text_list, cache_path):
     
     cls_embs, mean_embs = [], []
     
-    # I'm looping through each text to extract the hidden states.
+    batch_size = 32
+    # Process texts in batches for faster extraction
     with torch.no_grad():
-        for text in tqdm(text_list, desc="Extracting DistilBERT features"):
-            inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True, max_length=128).to(device)
+        for i in tqdm(range(0, len(text_list), batch_size), desc="Extracting DistilBERT features"):
+            batch_texts = text_list[i:i+batch_size]
+            inputs = tokenizer(batch_texts, return_tensors="pt", truncation=True, padding=True, max_length=128).to(device)
             outputs = model(**inputs)
             last_hidden = outputs.last_hidden_state
             
