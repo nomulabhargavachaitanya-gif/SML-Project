@@ -1,0 +1,112 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{float}
+\usepackage{multirow}
+\geometry{a4paper, margin=1in}
+
+\title{SML Course Project: \\ Text Classification using Classical ML}
+\author{Bhargava-BA2025026\\ IIIT Bangalore}
+\date{May 2026}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+In this project, I performed a large-scale comparative analysis to understand how classical Statistical Machine Learning models perform when provided with different levels of text information. I designed a pipeline to run five different models across six distinct feature spaces, resulting in a total of 30 unique experiments. My primary goal was to observe how algorithms like SVM and KNN respond to the shift from sparse, high-dimensional word counts to dense, semantically rich transformer embeddings.
+
+\section{Exploratory Data Analysis (EDA)}
+Before running my experiments, I verified that my subset of the AG News dataset was statistically sound. I extracted exactly 8,000 samples and found a perfect class balance, as shown in Figure \ref{fig:dist}. Each category (World, Sports, Business, and Sci/Tech) contains exactly 2,000 articles, which means my baseline random-chance accuracy is exactly 25\%.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.55\textwidth]{../outputs/class_dist.png}
+    \caption{I verified a perfectly balanced dataset, ensuring no class bias in my 30 experiments.}
+    \label{fig:dist}
+\end{figure}
+
+\section{Methodology: 30 Experiment Framework}
+I tested the following models: \textbf{Logistic Regression}, \textbf{Linear SVM}, \textbf{RBF SVM}, \textbf{KNN (k=5)}, and \textbf{KMeans (Baseline)}. These were trained and tested on six feature representations:
+
+\subsection{Sparse Representations (BoW and TF-IDF)}
+I used unigram Bag-of-Words and bigram-inclusive TF-IDF. As I expected, models performed better on TF-IDF because it penalizes common stop words.
+
+\subsection{Contextual Representations (DistilBERT)}
+I used a frozen DistilBERT model to extract 768-dimensional vectors. I compared the \textbf{[CLS]} token hidden state against the \textbf{Mean-Pool} (average of all token hidden states).
+
+\subsection{Reduced Feature Spaces (PCA and SVD)}
+To test the models on more compact data, I used \textbf{Truncated SVD} to reduce TF-IDF to 100 components and \textbf{PCA} to reduce the BERT CLS embeddings to 100 components. Figures \ref{fig:pca_tfidf} and \ref{fig:pca_cls} show that BERT features are much more information-dense than sparse counts.
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../outputs/pca_tfidf.png}
+        \caption{SVD Variance for TF-IDF.}
+        \label{fig:pca_tfidf}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../outputs/pca_cls.png}
+        \caption{PCA Variance for BERT.}
+        \label{fig:pca_cls}
+    \end{minipage}
+\end{figure}
+
+\section{Results and Comprehensive Comparison}
+The matrix in Table \ref{tab:matrix} represents the core of my research, showing the Accuracy for all 30 combinations.
+
+\begin{table}[H]
+\centering
+\caption{Comprehensive Accuracy Matrix: Model Performance vs. Data Type}
+\label{tab:matrix}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+\textbf{Feature Space} & \textbf{Log. Reg.} & \textbf{Lin. SVM} & \textbf{RBF SVM} & \textbf{KNN (k=5)} & \textbf{KMeans} \\ \midrule
+BoW (Unigram)          & 0.8575             & 0.8267            & 0.8542           & 0.4058             & 0.2875          \\
+TF-IDF (Bigram)        & 0.8708             & 0.8658            & 0.8783           & 0.8258             & 0.4583          \\
+Reduced TF-IDF (SVD)   & 0.8575             & 0.8583            & 0.8592           & 0.7700             & 0.4575          \\ \midrule
+DistilBERT (CLS)       & 0.8925             & 0.8792            & 0.8958           & 0.8700             & 0.8233          \\
+DistilBERT (Mean-Pool) & 0.8942             & 0.8817            & 0.8967           & 0.8700             & 0.8417          \\
+Reduced CLS (PCA 100)  & 0.8925             & 0.8925            & \textbf{0.8983}  & 0.8667             & 0.8233          \\ \bottomrule
+\end{tabular}
+}
+\end{table}
+
+\subsection{Key Model-Data Comparisons}
+\begin{itemize}
+    \item \textbf{KNN Sensitivity}: I observed that KNN is extremely sensitive to data sparsity. It performed significantly lower on BoW but improved drastically to 87.00\% when given dense BERT embeddings.
+    \item \textbf{SVM Dominance}: The RBF SVM was my most consistent performer. It achieved the highest overall accuracy (89.83\%) on the Reduced CLS space.
+    \item \textbf{Clustering Performance}: My KMeans baseline showed the most dramatic improvement, jumping from 28.75\% (near random) on BoW to over 84\% on Mean-Pool embeddings, proving that BERT features are naturally clusterable.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{../outputs/tsne_cls.png}
+    \caption{This t-SNE plot of the DistilBERT space explains why my clustering models performed so well; the classes are highly separable even before supervised training.}
+    \label{fig:tsne}
+\end{figure}
+
+\section{Discussion}
+Upon reviewing the results of my 30 experiments, several key patterns emerged regarding how these models interact with different data structures:
+
+\begin{itemize}
+    \item \textbf{Model Sensitivity to Sparsity:} I found that the K-Nearest Neighbors (KNN) model was the most sensitive to the feature space. In the sparse Bag-of-Words space, it achieved only 40.58\% accuracy, likely because the Euclidean distance becomes less meaningful in high-dimensional sparse vectors. However, when I provided KNN with dense DistilBERT embeddings, its performance jumped to 87.00\%, proving that the quality of the distance metric is directly tied to the density of the features.
+    
+    \item \textbf{The Efficiency of Contextual Data:} A major observation was the efficiency of dimensionality reduction. My PCA analysis of the BERT CLS space (Figure \ref{fig:pca_cls}) showed that 100 components capture over 80\% of the variance, allowing the RBF SVM to hit its peak accuracy of 89.83\%. In contrast, the SVD on TF-IDF (Figure \ref{fig:pca_tfidf}) captured significantly less cumulative variance with the same 100 components, resulting in a lower accuracy of 85.92\% for the same model.
+    
+    \item \textbf{Mean-Pooling vs. CLS:} I observed that Mean-Pooling generally provided a slight edge over CLS for nearly all models. For instance, Logistic Regression improved from 0.8925 (CLS) to 0.8942 (Mean-Pool). This suggests that for short news snippets, an average of all token meanings provides a more comprehensive representation than the single [CLS] token hidden state.
+    
+    \item \textbf{Unsupervised Capability:} My KMeans baseline provided the most surprising comparison. It struggled to separate classes in the BoW space (28.75\% accuracy). However, its success on BERT Mean-Pool features (84.17\%) was remarkable, nearly matching the supervised Linear SVM's performance on the same data. As seen in my t-SNE plot (Figure \ref{fig:tsne}), this is because DistilBERT creates naturally separable clusters based on semantic meaning alone.
+\end{itemize}
+
+\section{Conclusion}
+Through this extensive comparison of 30 model-feature combinations, I have concluded that the choice of data representation is the primary bottleneck in Statistical Machine Learning for text classification. While complex models like the RBF SVM generally performed best, the most significant performance gains came not from switching algorithms, but from switching from sparse counts to contextual embeddings.
+
+I demonstrated that by using DistilBERT Mean-Pooling, I could elevate a simple unsupervised KMeans model to outperform a supervised SVM trained on traditional word counts. My findings suggest that in modern NLP pipelines, the focus should remain on extracting high-quality, dense semantic features, as they enable even the most basic statistical classifiers to achieve near state-of-the-art results.
+\end{document}
