@@ -58,5 +58,10 @@ Ensure you have Python 3.8+ installed.
 
 ---
 
-## Key Findings
-My results demonstrate that **Mean-Pool DistilBERT embeddings** paired with an **RBF SVM** provide the highest classification accuracy (approx. **89.7%**), significantly outperforming traditional sparse methods. Furthermore, the t-SNE visualizations confirm that contextual embeddings create naturally separable semantic clusters, allowing even unsupervised KMeans to achieve over **84%** accuracy.
+## Results
+- **Best Accuracy:** **90.3%** (PCA-reduced DistilBERT CLS + RBF SVM)
+- **Mean-Pool DistilBERT + RBF SVM:** **89.8%**
+- **Best Sparse Baseline:** **87.1%** (TF-IDF bigram + RBF SVM)
+- **KMeans on Mean-Pool Embeddings:** **84.2%**
+
+*Note: Results may vary slightly between runs due to solver tolerances and sampling across package versions.*
